@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PawBaseline App Demo</title>
+<style>
+:root{--bg:#f3eeed;--surface:#fff;--ink:#241a1b;--mute:#7a6d6e;--line:#eadfe0;--red:#e2001a;--tint:#fdecee;--bub:#f4eded;--g:#2e9e5b;--y:#f0b400;--r:#e2001a;--gray:#b9b0b1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#120e0f;--surface:#221b1c;--ink:#f3eaeb;--mute:#a89b9c;--line:#3a2f31;--tint:#3a1c20;--bub:#2d2325;--gray:#6d6264}}
+:root[data-theme="dark"]{--bg:#120e0f;--surface:#221b1c;--ink:#f3eaeb;--mute:#a89b9c;--line:#3a2f31;--tint:#3a1c20;--bub:#2d2325;--gray:#6d6264}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;display:flex;justify-content:center}
+.app{width:100%;max-width:410px;height:100vh;height:100dvh;background:var(--surface);display:flex;flex-direction:column;position:relative}
+@media(min-width:520px){body{padding:20px 0}.app{min-height:0;height:800px;border-radius:32px;border:1px solid var(--line);overflow:hidden}}
+.top{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.top h1{margin:0 0 8px;font-size:18px;color:var(--red)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer}
+.chip{border:1px solid var(--red);background:transparent;color:var(--red);border-radius:999px;padding:5px 14px;font-size:14px}
+.chip.on{background:var(--red);color:#fff}
+.chip.sm{padding:3px 10px;font-size:13px}
+.view{flex:1;overflow-y:auto;padding:16px}
+nav{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--surface)}
+nav button{border:0;background:none;padding:10px 0 12px;color:var(--mute);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button[aria-current=page]{color:var(--red);font-weight:700}
+nav span{font-size:20px;line-height:1}
+button:focus-visible,input:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.card{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;background:var(--surface)}
+.light{display:flex;gap:14px;align-items:center}
+.dot{width:54px;height:54px;border-radius:50%;flex:none}
+.light h2{margin:0;font-size:18px}.light p{margin:2px 0 0;color:var(--mute);font-size:14px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tile{background:var(--bub);border-radius:12px;padding:10px}
+.tile small{color:var(--mute);display:block;font-size:12px}.tile b{font-size:19px}.tile i{font-style:normal;font-size:12px}
+.up{color:var(--r)}.ok{color:var(--g)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.btn{border:0;background:var(--red);color:#fff;border-radius:10px;padding:9px 16px}
+.ghost{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px 14px;font-size:14px}
+.note{color:var(--mute);font-size:12.5px;margin:8px 0 0}
+svg{width:100%;height:auto;display:block}
+dl{display:grid;grid-template-columns:5em 1fr;gap:5px 8px;margin:0;font-size:15px}
+dt{color:var(--mute)}dd{margin:0}
+.toast{position:absolute;left:12px;right:12px;top:12px;background:var(--ink);color:var(--surface);border-radius:14px;padding:12px 14px;font-size:14px;transform:translateY(-130%);transition:transform .35s;z-index:5;box-shadow:0 6px 20px #0004}
+.toast.show{transform:none}
+.photo{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:var(--bub);display:block}
+.empty{display:flex;align-items:center;justify-content:center;color:var(--mute);aspect-ratio:4/3;border:2px dashed var(--line);border-radius:12px;text-align:center;padding:12px}
+h3{margin:0 0 8px;font-size:16px}
+.big{font-size:24px;font-weight:700;color:var(--red)}
+.top .row{margin-bottom:8px}.top h1{margin:0}
+.wel{position:absolute;inset:0;background:#000a;z-index:8;display:flex;align-items:center;justify-content:center;padding:20px}
+.wc{background:var(--surface);border-radius:20px;padding:20px;max-width:340px}
+.wc h2{margin:0 0 6px;font-size:20px}.wc ol{padding-left:20px;margin:10px 0 14px;font-size:15px}
+.coach{position:absolute;left:10px;right:10px;bottom:72px;background:var(--surface);border:2px solid var(--red);border-radius:16px;padding:12px 14px;z-index:7;box-shadow:0 8px 24px #0005}
+.coach p{margin:4px 0 10px;font-size:14.5px}
+.hl{outline:3px solid var(--red);outline-offset:3px;border-radius:12px}
+.hint{background:var(--tint);border-radius:10px;padding:8px 12px;font-size:13.5px;margin:0 0 12px}
+.touring .view{padding-bottom:210px}
+nav button{position:relative}
+.bd{position:absolute;top:6px;left:calc(50% + 8px);width:10px;height:10px;border-radius:50%;background:var(--red)}
+.dys{display:flex;gap:8px;margin-top:8px}
+.dy{width:22px;height:22px;border-radius:50%;border:2px solid var(--gray);display:inline-block}
+.dy.ok{background:var(--g);border-color:var(--g)}
+.tdy{outline:2px solid var(--red);outline-offset:2px}
+.st.todo{border-color:var(--y);background:var(--tint)}
+.st.done{border-color:var(--g)}
+.sec{margin:18px 0 8px;font-size:14px;color:var(--mute);font-weight:600}
+.tip{border-left:3px solid var(--red);padding:2px 0 2px 10px;margin:0 0 10px;font-size:14.5px}
+input.num{width:90px;font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="toast" id="toast" role="status"></div>
+<div id="ov"></div>
+<div class="top"><div class="row"><h1>PawBaseline</h1><button class="ghost" id="help" aria-label="重新開始使用導覽">？ 使用導覽</button></div><div class="chips" id="pets"></div></div>
+<div class="view" id="view"></div>
+<nav id="nav"></nav>
+</div>
+<script>
+var $=function(id){return document.getElementById(id)};
+var seed=11;function rnd(){seed=(seed*9301+49297)%233280;return seed/233280}
+function mean(a){return a.reduce(function(x,y){return x+y},0)/a.length}
+function gen(base,shift,n,noise,from){var o=[],i;for(i=0;i<n;i++)o.push(+(base+(i>=from?shift:0)+(rnd()-.5)*noise).toFixed(1));return o}
+var pets=[
+{id:'m',name:'Mochi',sp:'貓',info:'8 歲｜絕育公貓',ageY:8,hist:[1,1,0,1,1,1],ev:['夜間飲水次數：近 7 天平均多 2 次','進出貓砂盆：近 7 天較基準 +25%','日間活動：較基準下降約 23%'],w:gen(215,73,28,22,21),a:gen(100,-23,28,8,21),k:[],bcs:null,photo:null},
+{id:'b',name:'Boba',sp:'狗',info:'5 歲｜絕育母犬',ageY:5,hist:[1,1,1,1,1,1],ev:['近 7 天未偵測到明顯異常行為'],w:gen(480,0,28,40,99),a:gen(100,0,28,10,99),k:[],bcs:null,photo:null}];
+pets[0].k=pets[0].w.map(function(_,i){return i<14?4.9:+(4.9-(i-13)*0.014).toFixed(2)});
+pets[1].k=pets[1].w.map(function(){return +(12.4+(rnd()-.5)*0.2).toFixed(2)});
+var S={cur:0,tab:'today',metric:'w',range:28,collar:true,goal:'keep',dens:{},kc:{lo:0,hi:0},welcome:true,tour:-1};
+var M={w:{n:'飲水',u:'ml',bad:1},a:{n:'活動量',u:'',bad:-1},k:{n:'體重',u:'kg',bad:-1}};
+function ev(p){
+  var bw=mean(p.w.slice(0,14)),ba=mean(p.a.slice(0,14)),bk=mean(p.k.slice(0,14)),rs=[];
+  var cw=p.w.slice(-7).filter(function(v){return v>bw*1.15}).length;
+  var ca=p.a.slice(-7).filter(function(v){return v<ba*0.85}).length;
+  var dk=(p.k[p.k.length-1]/bk-1)*100;
+  if(cw>=5)rs.push('飲水近 7 天有 '+cw+' 天高於'+p.name+'自己的基準');
+  if(ca>=5)rs.push('活動量近 7 天有 '+ca+' 天低於基準');
+  if(dk<=-3)rs.push('體重較基準下降 '+Math.abs(dk).toFixed(1)+'%');
+  if(p.lg&&p.lg.a===2)rs.push('飼主回報今天食慾變差');
+  if(p.lg&&p.lg.l===2)rs.push('飼主回報排尿困難');
+  return {lv:(p.lg&&p.lg.l===2)?'r':rs.length?'y':'g',rs:rs,base:{w:bw,a:ba,k:bk},cw:cw,ca:ca,dk:dk};
+}
+function toast(t){var e=$('toast');e.textContent=t;e.classList.add('show');setTimeout(function(){e.classList.remove('show')},3800)}
+function pct(v,b){var d=(v/b-1)*100;return (d>=0?'+':'')+d.toFixed(0)+'%'}
+function today(p,e){
+  var n=p.w.length-1,L=e.lv==='r'?['紅燈：請立即就醫','你回報排尿困難，可能是緊急狀況，請立刻聯絡動物醫院。','var(--r)']:e.lv==='y'?['黃燈：建議安排健檢',e.rs.join('；'),'var(--y)']:['綠燈：在正常範圍','近期變化都在'+p.name+'自己的基準內。','var(--g)'];
+  var h=(e.lv==='r'?'':statusCard(p)+logCard(p))+'<div class="card light"><div class="dot" style="background:'+L[2]+'"></div><div><h2>'+L[0]+'</h2><p>'+L[1]+(e.lv==='y'?'。建議 2 週內健檢'+(p.sp==='貓'?'並請獸醫評估腎功能（如 SDMA）':'')+'。這不是診斷。':'')+'</p></div></div>';
+  h+='<h3 class="sec">與基準比較</h3><div class="tiles">';
+  ['w','a','k'].forEach(function(m){
+    var v=p[m][n],b=e.base[m],bad=(M[m].bad>0?v>b*1.15:v<b*(m==='k'?0.97:0.85));
+    var off=!S.collar&&m!=='k';
+    h+='<div class="tile"><small>'+M[m].n+(off?'（項圈離線）':'')+'</small><b>'+(off?'—':v+(M[m].u?'<span style="font-size:12px"> '+M[m].u+'</span>':''))+'</b><br><i class="'+(bad?'up':'ok')+'">'+(off?'改用手動記錄':pct(v,b)+' vs 基準')+'</i></div>';
+  });
+  h+='</div>'+(e.lv==='r'?statusCard(p)+logCard(p):'')+behCard(p)+'<h3 class="sec">裝置與提醒（選配）</h3><div class="card"><div class="row"><div><b>智慧項圈</b><br><span class="note" style="margin:0">'+(S.collar?'已連線，剛剛同步':'未連線')+'</span></div><button class="ghost" id="col">'+(S.collar?'中斷連線':'藍牙配對')+'</button></div></div>';
+  h+='<div class="card"><div class="row"><div><b>推播提醒</b><br><span class="note" style="margin:0">App 可在偏離基準時主動通知</span></div><button class="btn" id="push">模擬推播</button></div></div>';
+  h+='<p class="note">※ 全部為虛構示意資料，燈號為簡化規則，不構成醫療診斷。</p>';
+  return h;
+}
+function done(p){return !!(p.lg&&p.lg.a!==undefined&&p.lg.l!==undefined)}
+function left(p){var g=p.lg||{};return (g.a===undefined?1:0)+(g.l===undefined?1:0)}
+function streak(p){var s=done(p)?1:0,i;for(i=p.hist.length-1;i>=0&&p.hist[i];i--)s++;return s}
+function statusCard(p){
+  var d=done(p),n=left(p),s=streak(p);
+  var strip=p.hist.map(function(v,i){return '<span class="dy'+(v?' ok':'')+'" title="'+(6-i)+' 天前'+(v?'已記錄':'未記錄')+'"></span>'}).join('')+'<span class="dy tdy'+(d?' ok':'')+'" title="今天"></span>';
+  return '<div class="card st '+(d?'done':'todo')+'" id="stc"><div class="row"><b>'+(d?'今天已完成記錄 ✓':'今天還沒記錄')+'</b><span class="note" style="margin:0">'+(d?'連續 '+s+' 天':n===2?'還差 2 題，約 10 秒':'還差 1 題')+'</span></div><div class="dys" aria-label="近 7 天記錄狀況">'+strip+'</div><p class="note" style="margin:6px 0 0">圓點由左到右是 6 天前到今天，實心代表已記錄。</p>'+(d?'':'<div class="row" style="margin-top:8px"><button class="ghost" id="rm">'+(S.remind?'已設定 20:00 提醒（點此取消）':'未記錄時，晚上 8 點提醒我')+'</button></div>')+'</div>';
+}
+function logCard(p){
+  var g=p.lg||{},A=['很好','普通','變差'],X=p.sp==='狗'?['正常','次數變多','想排尿卻排不出']:['正常','次數變多','一直去但排不出'];
+  var c=function(k,o){return o.map(function(t,i){return '<button class="chip sm'+(g[k]===i?' on':'')+'" data-lg="'+k+i+'">'+t+'</button>'}).join('')};
+  return '<div class="card" id="lgc"><h3>日常記錄（10 秒）</h3><p class="note" style="margin:0 0 6px">食慾</p><div class="chips">'+c('a',A)+'</div><p class="note" style="margin:8px 0 6px">'+(p.sp==='狗'?'排尿':'如廁')+'</p><div class="chips">'+c('l',X)+'</div></div>';
+}
+function behCard(p){
+  return '<div class="card"><h3>異常行為偵測</h3><ul style="margin:0;padding-left:18px;font-size:14px">'+p.ev.map(function(t){return '<li>'+t+'</li>'}).join('')+'</ul><p class="note">來源：項圈加速度與飲水、貓砂盆事件（示意）。</p></div>';
+}
+function chart(p,e){
+  var m=S.metric,d=p[m].slice(-S.range),N=d.length,W=360,H=200,Lm=36,B=22,T=10,b=e.base[m];
+  var lo=Math.min.apply(null,d.concat([b*0.8])),hi=Math.max.apply(null,d.concat([b*1.2])),pad=(hi-lo)*0.08;lo-=pad;hi+=pad;
+  var x=function(i){return Lm+(W-Lm-8)*i/(N-1)},y=function(v){return T+(H-T-B)*(1-(v-lo)/(hi-lo))};
+  var h='<rect x="'+Lm+'" y="'+y(b*1.15)+'" width="'+(W-Lm-8)+'" height="'+(y(b*0.85)-y(b*1.15))+'" fill="var(--g)" opacity=".13"/>';
+  h+='<line x1="'+Lm+'" x2="'+(W-8)+'" y1="'+y(b)+'" y2="'+y(b)+'" stroke="var(--ink)" stroke-dasharray="5 4"/>';
+  h+='<polyline fill="none" stroke="var(--mute)" stroke-width="2" points="'+d.map(function(v,i){return x(i)+','+y(v)}).join(' ')+'"/>';
+  d.forEach(function(v,i){var bad=M[m].bad>0?v>b*1.15:v<b*(m==='k'?0.97:0.85);h+='<circle cx="'+x(i)+'" cy="'+y(v)+'" r="'+(bad?4:2.5)+'" fill="'+(bad?'var(--r)':'var(--mute)')+'"/>'});
+  [lo+pad,b,hi-pad].forEach(function(v){h+='<text x="2" y="'+(y(v)+4)+'" font-size="10" fill="var(--mute)">'+Math.round(m==='k'?v*10:v)/(m==='k'?10:1)+'</text>'});
+  h+='<text x="'+Lm+'" y="'+(H-6)+'" font-size="10" fill="var(--mute)">'+N+' 天前</text><text x="'+(W-34)+'" y="'+(H-6)+'" font-size="10" fill="var(--mute)">今天</text>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+M[m].n+'趨勢">'+h+'</svg>';
+}
+function trends(p,e){
+  var h='<div class="chips" style="margin-bottom:10px">'+Object.keys(M).map(function(m){return '<button class="chip sm'+(S.metric===m?' on':'')+'" data-m="'+m+'">'+M[m].n+'</button>'}).join('')+'<span style="flex:1"></span>'+[7,14,28].map(function(r){return '<button class="chip sm'+(S.range===r?' on':'')+'" data-r="'+r+'">'+r+' 天</button>'}).join('')+'</div>';
+  h+='<div class="card">'+chart(p,e)+'<p class="note">虛線是個人基準，綠色帶是正常範圍（±15%），紅點是偏離的日子。</p></div>';
+  h+='<div class="card"><h3>可疊加的多項訊號</h3><p class="note" style="margin:0">App 可以同時看飲水、活動、體重三條線，這是 LINE 對話較難呈現的部分。切換上方分頁即可比較。</p></div>';
+  return h;
+}
+function bcsCard(p){
+  if(!p.bcs)return '';
+  var b=p.bcs,lab=b<=3?'偏瘦':b<=5?'理想':b<=7?'偏重':'肥胖',col=b<=5&&b>=4?'var(--g)':b>=8?'var(--r)':'var(--y)',seg='',i,c;
+  for(i=1;i<=9;i++){c=i<=3?'var(--y)':i<=5?'var(--g)':i<=7?'var(--y)':'var(--r)';seg+='<span style="flex:1;height:10px;background:'+c+';opacity:'+(i===b?1:0.3)+';border-radius:3px"></span>'}
+  var kg=p.k[p.k.length-1],kb=mean(p.k.slice(0,14)),cmp=b===5?'與 4 週前相比：維持 5／9':'與 4 週前相比：由 5 升到 '+b;
+  return '<div class="card" id="bcsr"><h3>分析結果</h3><div class="row"><span class="big" style="color:'+col+'">BCS '+b+'／9</span><b>'+lab+'</b></div><div style="display:flex;gap:3px;margin:10px 0 2px">'+seg+'</div><div class="row note" style="margin:0"><span>1 偏瘦</span><span>4–5 理想</span><span>9 肥胖</span></div>'
+  +'<dl style="margin-top:12px"><dt>觀察</dt><dd>側面腹部'+(b<=5?'有上收':'上收不明顯')+'；俯視腰身'+(b<=5?'可辨識':'較不明顯')+'</dd><dt>影像品質</dt><dd>可用（角度正確、光線普通）</dd><dt>趨勢</dt><dd>'+cmp+'；體重 '+kb.toFixed(1)+' → '+kg.toFixed(1)+' kg</dd><dt>信心</dt><dd>中</dd></dl>'
+  +'<p class="tip" style="margin-top:12px">'+(b<=5?'目前體態在理想範圍，維持現有份量並每週拍照追蹤。':'體態偏重，建議和獸醫討論體重管理目標，不要自行大幅減量。')+'</p>'
+  +'<p class="note">已加入獸醫摘要。這是照片估計（示意結果），長毛與拍攝角度會影響判讀，請由獸醫複核。</p></div>';
+}
+function body(p){
+  var h='<div class="card"><h3>體態評估（BCS）</h3>'+(p.photo?'<img class="photo" alt="'+p.name+'的體態照" src="'+p.photo+'">':'<div class="empty">請拍側面與俯視各一張，<br>或使用範例照片流程</div>')+'<div class="row" style="margin-top:10px"><label class="btn" style="cursor:pointer">選擇照片<input id="file" type="file" accept="image/*" style="position:absolute;opacity:0;width:1px;height:1px"></label><button class="ghost" id="samp">用範例流程</button></div>';
+  if(p.busy)h+='<p class="note" style="margin-top:10px" role="status">分析中…正在檢查拍攝角度與體態輪廓</p>';
+  h+='<p class="note">照片只在你的手機頁面中處理，這個示範不會上傳。</p></div>';
+  h+=bcsCard(p)+'<div class="card"><h3>拍攝小提醒</h3><p class="note" style="margin:0">站姿、光線均勻、側面看腰線、俯視看腰身，每週同一時間拍，才好比較趨勢。</p></div>';
+  return h;
+}
+function care(p,e){
+  var kg=p.k[p.k.length-1],rer=70*Math.pow(kg,0.75),f=p.sp==='貓'?1.2:1.6,m=S.goal==='lose'?0.8:1,kc=rer*f*m;
+  var lo=Math.round(kc*0.9),hi=Math.round(kc*1.1),a=p.ageY;
+  var st=a<1?'幼年':a<=6?'成年':(p.sp==='貓'?a<=10:a<=9)?'熟齡':'高齡';
+  var SG={'幼年':'成長快速，需專用配方，每週稱重。','成年':'維持理想體態，定期稱重與拍體態照。','熟齡':'建議和獸醫討論健檢頻率，留意飲水、體重與活動變化。','高齡':'建議和獸醫討論更密集的健檢，留意飲水、食慾與活動。'};
+  var d=S.dens[p.id]||(p.sp==='貓'?380:350);
+  S.kc={lo:lo,hi:hi};
+  var T=[];
+  if(e.lv!=='g')T.push(['已偵測到偏離：先不要自行大幅調整飲食，請帶「摘要」給獸醫評估。','依據：個人基準偏離','高']);
+  if(e.cw>=5)T.push(['增加水碗數量與擺放位置，可和獸醫討論濕食比例，並安排健檢。','依據：飲水連續偏高','中']);
+  if(e.ca>=5)T.push(['觀察跳躍、爬樓梯是否變慢，並和獸醫討論疼痛或關節問題。','依據：活動量下降','中']);
+  if(e.dk<=-3)T.push(['若不是刻意減重，體重下降請就醫評估，不要自行增減份量。','依據：體重較基準下降','高']);
+  T.push([SG[st],'依據：年齡階段通則','中']);
+  T.push(['每 2–4 週依體重與體態趨勢調整份量區間，而不是固定克數。','依據：動態調整機制','中']);
+  var h='<div class="card"><h3>'+p.name+'：'+st+'階段</h3><p class="note" style="margin:0">'+p.info+'｜目前體重 '+kg+' kg</p></div>';
+  h+='<div class="card"><h3>每日能量範圍</h3><div class="chips" style="margin-bottom:10px"><button class="chip sm'+(S.goal==='keep'?' on':'')+'" data-g="keep">維持體重</button><button class="chip sm'+(S.goal==='lose'?' on':'')+'" data-g="lose">減重（示意）</button></div><div class="big">'+lo+'–'+hi+' kcal</div><p class="note">以 RER = 70 × 體重^0.75 再乘一般係數估算，是範圍而非固定值。</p><div class="row" style="margin-top:8px"><label for="dens">目前食物熱量（kcal／100g）</label><input class="num" id="dens" type="number" min="50" max="600" value="'+d+'"></div><p style="margin:8px 0 0">約 <b id="gr">'+Math.round(lo/d*100)+'–'+Math.round(hi/d*100)+' g</b> ／天</p><p class="note">熱量請依包裝標示填寫。需處方飲食或有疾病時，請依獸醫指示。</p></div>';
+  h+='<div class="card"><h3>個人化照護建議</h3>'+T.map(function(t){return '<div class="tip">'+t[0]+'<br><span class="note">'+t[1]+'｜信心：'+t[2]+'</span></div>'}).join('')+'<p class="note">不診斷疾病，不建議藥物或劑量。</p></div>';
+  return h;
+}
+function summ(p,e){
+  var rows=[['毛孩',p.name+'｜'+p.sp+'｜'+p.info],['系統提醒',e.rs.length?e.rs.join('；'):'目前無偏離'],['基準期','前 14 天，共 '+p.w.length+' 天資料'],
+  ['飲水','近 7 天平均 '+Math.round(mean(p.w.slice(-7)))+' ml，基準 '+Math.round(e.base.w)+' ml（'+pct(mean(p.w.slice(-7)),e.base.w)+'）；'+e.cw+' 天超標'],
+  ['活動量','近 7 天平均指數 '+Math.round(mean(p.a.slice(-7)))+'（基準 '+Math.round(e.base.a)+'）；'+e.ca+' 天偏低'],
+  ['體重',p.k[0]+' → '+p.k[p.k.length-1]+' kg（'+(e.dk>=0?'+':'')+e.dk.toFixed(1)+'% vs 基準）'],
+  ['BCS',p.bcs?p.bcs+'／9（照片估計）':'尚未評估'],['飼主回報',p.lg?'食慾 '+(['很好','普通','變差'][p.lg.a]||'未填')+'；排泄 '+(['正常','次數變多','排不出（緊急）'][p.lg.l]||'未填'):'今天尚未記錄'],['記錄完成度',(p.hist.filter(Boolean).length+(done(p)?1:0))+'／7 天'],['異常行為',p.ev.join('；')],['每日能量','約 '+Math.round(70*Math.pow(p.k[p.k.length-1],0.75)*(p.sp==='貓'?1.2:1.6)*0.9)+'–'+Math.round(70*Math.pow(p.k[p.k.length-1],0.75)*(p.sp==='貓'?1.2:1.6)*1.1)+' kcal（示意估算）'],
+  ['註記','飼主與項圈資料整理，僅供就診參考；判斷與處置由獸醫決定。']];
+  S.rows=rows;
+  return '<div class="card"><h3>獸醫摘要</h3><dl>'+rows.map(function(r){return '<dt>'+r[0]+'</dt><dd>'+r[1]+'</dd>'}).join('')+'</dl></div><div class="row"><button class="btn" id="share">分享／複製摘要</button><span class="note" id="msg" style="margin:0"></span></div>';
+}
+function render(){
+  var p=pets[S.cur],e=ev(p);
+  $('pets').innerHTML=pets.map(function(q,i){return '<button class="chip'+(i===S.cur?' on':'')+'" data-p="'+i+'">'+q.name+'（'+q.sp+'）'+(done(q)?'':'<span style="color:var(--y)" aria-label="今天尚未記錄"> ●</span>')+'</button>'}).join('');
+  var T=[['today','◉','今天'],['trend','↗','趨勢'],['body','▣','體態'],['care','♥','建議'],['sum','☰','摘要']];
+  $('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'"'+(S.tab===t[0]?' aria-current="page"':'')+'><span>'+t[1]+'</span>'+t[2]+(t[0]==='today'&&!done(p)?'<i class="bd" aria-label="今天尚未記錄"></i>':'')+'</button>'}).join('');
+  $('view').innerHTML='<p class="hint">提示：'+HINT[S.tab]+'</p>'+(S.tab==='today'?today(p,e):S.tab==='trend'?trends(p,e):S.tab==='body'?body(p):S.tab==='care'?care(p,e):summ(p,e));
+  bind(p,e);
+}
+function setBcs(p){p.bcs=p.sp==='貓'?5:6;p.busy=false}
+var HINT={today:'先點兩題記錄今天，燈號會立即更新。',trend:'點上方指標與天數，切換圖表。',body:'選一張照片，或按「用範例流程」。',care:'份量是範圍，請依獸醫指示調整。',sum:'就診前按下方按鈕，分享給獸醫。'};
+var TOUR=[
+{t:'today',sel:'.light',h:'先看燈號',d:'綠燈是正常，黃燈建議安排健檢，紅燈請立即就醫。它是和毛孩自己比較，不是和平均值比。'},
+{t:'today',sel:'#lgc',h:'每天記錄 10 秒',d:'只要點兩題：食慾和如廁。試試點「變差」或「次數變多」，看燈號怎麼變。'},
+{t:'today',sel:'#push',h:'偏離時主動提醒',d:'按「模擬推播」，看 App 會怎麼通知你，不用每天自己翻資料。'},
+{t:'trend',sel:'.card',h:'看個人化趨勢',d:'虛線是毛孩自己的基準，紅點是偏離的日子。可切換飲水、活動、體重。'},
+{t:'body',sel:'#samp',h:'拍照看體態',d:'選一張照片，或按「用範例流程」體驗。結果為示意，需獸醫複核。'},
+{t:'care',sel:'#dens',h:'個人化營養建議',d:'填入目前食物的熱量，會換算成每日份量範圍，並附上依據與信心程度。'},
+{t:'sum',sel:'#share',h:'帶給獸醫',d:'就診前按這裡分享或複製，獸醫一頁就能掌握趨勢。'}];
+TOUR.unshift(TOUR.splice(1,1)[0]);
+function go(i){S.welcome=false;S.tour=i;S.tab=TOUR[i].t;render()}
+function tourUI(){
+  var o=$('ov'),a=document.querySelector('.app');
+  document.querySelectorAll('.hl').forEach(function(x){x.classList.remove('hl')});
+  a.classList.toggle('touring',S.tour>=0&&!S.welcome);
+  if(S.welcome){
+    o.innerHTML='<div class="wel"><div class="wc"><h2>歡迎使用 PawBaseline</h2><p style="margin:0">每天花 10 秒，幫毛孩建立自己的健康基準。</p><ol><li>每天點兩題：食慾與如廁</li><li>看燈號：和毛孩自己比較，有偏離就提醒</li><li>就診前分享摘要給獸醫</li></ol><div class="row"><button class="ghost" id="skp">直接使用</button><button class="btn" id="gt">30 秒導覽</button></div><p class="note">隨時按右上角「使用導覽」重看。</p></div></div>';
+    $('skp').onclick=function(){S.welcome=false;tourUI()};
+    $('gt').onclick=function(){go(0)};
+    return;
+  }
+  if(S.tour<0){o.innerHTML='';return}
+  var s=TOUR[S.tour],last=S.tour===TOUR.length-1;
+  o.innerHTML='<div class="coach" role="dialog" aria-label="使用導覽"><b>導覽 '+(S.tour+1)+'／'+TOUR.length+'｜'+s.h+'</b><p>'+s.d+'</p><div class="row"><button class="ghost" id="tx">結束</button><span><button class="ghost" id="tp"'+(S.tour?'':' disabled')+'>上一步</button> <button class="btn" id="tn">'+(last?'完成':'下一步')+'</button></span></div></div>';
+  $('tx').onclick=function(){S.tour=-1;tourUI()};
+  $('tp').onclick=function(){go(S.tour-1)};
+  $('tn').onclick=function(){if(last){S.tour=-1;tourUI()}else go(S.tour+1)};
+  var el=document.querySelector(s.sel);if(el){el.classList.add('hl');el.scrollIntoView({block:'nearest'})}
+}
+function bind(p,e){
+  document.querySelectorAll('[data-lg]').forEach(function(b){b.onclick=function(){var k=b.dataset.lg[0],v=+b.dataset.lg[1];p.lg=p.lg||{};p.lg[k]=v;render();if(k==='l'&&v===2)toast('紅燈：請立刻聯絡動物醫院');else if(done(p))toast('今天的記錄完成了，做得好！')}});
+  if($('rm'))$('rm').onclick=function(){S.remind=!S.remind;render();toast(S.remind?'已設定：沒記錄時，晚上 8 點提醒你':'已取消每日提醒')};
+  tourUI();document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){S.goal=b.dataset.g;render()}});
+  if($('dens'))$('dens').oninput=function(){var v=+this.value;if(v>0){S.dens[p.id]=v;$('gr').textContent=Math.round(S.kc.lo/v*100)+'–'+Math.round(S.kc.hi/v*100)+' g'}};
+  document.querySelectorAll('[data-p]').forEach(function(b){b.onclick=function(){S.cur=+b.dataset.p;render()}});
+  document.querySelectorAll('[data-t]').forEach(function(b){b.onclick=function(){S.tab=b.dataset.t;render()}});
+  document.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){S.metric=b.dataset.m;render()}});
+  document.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){S.range=+b.dataset.r;render()}});
+  if($('col'))$('col').onclick=function(){S.collar=!S.collar;render();toast(S.collar?'項圈已連線，資料已同步':'項圈已中斷，可改用手動記錄')};
+  if($('push'))$('push').onclick=function(){toast(e.lv==='y'?p.name+'：'+e.rs[0]+'，建議安排健檢。':p.name+'今天一切正常，繼續保持。')};
+  if($('file'))$('file').onchange=function(ev){
+    var f=ev.target.files[0];if(!f)return;
+    var r=new FileReader();r.onload=function(){p.photo=r.result;p.bcs=null;p.busy=true;render();setTimeout(function(){setBcs(p);render();var q=$('bcsr');if(q)q.scrollIntoView({block:'nearest'})},1100)};r.readAsDataURL(f);
+  };
+  if($('samp'))$('samp').onclick=function(){p.bcs=null;p.busy=true;render();setTimeout(function(){setBcs(p);render();var q=$('bcsr');if(q)q.scrollIntoView({block:'nearest'})},1100)};
+  if($('share'))$('share').onclick=function(){
+    var t=S.rows.map(function(r){return r[0]+'：'+r[1]}).join('\n');
+    var done=function(s){$('msg').textContent=s};
+    try{if(navigator.share){navigator.share({title:p.name+' 健康摘要',text:t}).catch(function(){})}else{navigator.clipboard.writeText(t).then(function(){done('已複製')},function(){done('請手動選取文字')})}}catch(x){done('請手動選取文字')}
+  };
+}
+$('help').onclick=function(){go(0)};
+render();
+</script>
+</body>
+</html>
