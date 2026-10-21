@@ -66,6 +66,12 @@ nav button{position:relative}
 .st.todo{border-color:var(--y);background:var(--tint)}
 .st.done{border-color:var(--g)}
 .sec{margin:18px 0 8px;font-size:14px;color:var(--mute);font-weight:600}
+.alert{border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:15px}
+.alert.r{background:var(--r);color:#fff}
+.alert.y{background:var(--y);color:#241a1b}
+.hi{border-radius:6px;padding:2px 8px;font-weight:700}
+.hi.r{background:var(--r);color:#fff}
+.hi.y{background:var(--y);color:#241a1b}
 .tip{border-left:3px solid var(--red);padding:2px 0 2px 10px;margin:0 0 10px;font-size:14.5px}
 input.num{width:90px;font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 </style>
@@ -170,22 +176,50 @@ function body(p){
   return h;
 }
 function care(p,e){
-  var kg=p.k[p.k.length-1],rer=70*Math.pow(kg,0.75),f=p.sp==='貓'?1.2:1.6,m=S.goal==='lose'?0.8:1,kc=rer*f*m;
-  var lo=Math.round(kc*0.9),hi=Math.round(kc*1.1),a=p.ageY;
-  var st=a<1?'幼年':a<=6?'成年':(p.sp==='貓'?a<=10:a<=9)?'熟齡':'高齡';
-  var SG={'幼年':'成長快速，需專用配方，每週稱重。','成年':'維持理想體態，定期稱重與拍體態照。','熟齡':'建議和獸醫討論健檢頻率，留意飲水、體重與活動變化。','高齡':'建議和獸醫討論更密集的健檢，留意飲水、食慾與活動。'};
-  var d=S.dens[p.id]||(p.sp==='貓'?380:350);
+  var n=p.name,kg=p.k[p.k.length-1],cat=p.sp==='貓',a=p.ageY;
+  var kc=70*Math.pow(kg,0.75)*(cat?1.2:1.6)*(S.goal==='lose'?0.8:1);
+  var lo=Math.round(kc*0.9),hi=Math.round(kc*1.1);
+  var st=a<1?'幼年':a<=6?'成年':(cat?a<=10:a<=9)?'熟齡':'高齡';
+  var d=S.dens[p.id]||(cat?380:350),meals=(a<1||cat)?'3–4':'2';
   S.kc={lo:lo,hi:hi};
-  var T=[];
-  if(e.lv!=='g')T.push(['已偵測到偏離：先不要自行大幅調整飲食，請帶「摘要」給獸醫評估。','依據：個人基準偏離','高']);
-  if(e.cw>=5)T.push(['增加水碗數量與擺放位置，可和獸醫討論濕食比例，並安排健檢。','依據：飲水連續偏高','中']);
-  if(e.ca>=5)T.push(['觀察跳躍、爬樓梯是否變慢，並和獸醫討論疼痛或關節問題。','依據：活動量下降','中']);
-  if(e.dk<=-3)T.push(['若不是刻意減重，體重下降請就醫評估，不要自行增減份量。','依據：體重較基準下降','高']);
-  T.push([SG[st],'依據：年齡階段通則','中']);
-  T.push(['每 2–4 週依體重與體態趨勢調整份量區間，而不是固定克數。','依據：動態調整機制','中']);
-  var h='<div class="card"><h3>'+p.name+'：'+st+'階段</h3><p class="note" style="margin:0">'+p.info+'｜目前體重 '+kg+' kg</p></div>';
-  h+='<div class="card"><h3>每日能量範圍</h3><div class="chips" style="margin-bottom:10px"><button class="chip sm'+(S.goal==='keep'?' on':'')+'" data-g="keep">維持體重</button><button class="chip sm'+(S.goal==='lose'?' on':'')+'" data-g="lose">減重（示意）</button></div><div class="big">'+lo+'–'+hi+' kcal</div><p class="note">以 RER = 70 × 體重^0.75 再乘一般係數估算，是範圍而非固定值。</p><div class="row" style="margin-top:8px"><label for="dens">目前食物熱量（kcal／100g）</label><input class="num" id="dens" type="number" min="50" max="600" value="'+d+'"></div><p style="margin:8px 0 0">約 <b id="gr">'+Math.round(lo/d*100)+'–'+Math.round(hi/d*100)+' g</b> ／天</p><p class="note">熱量請依包裝標示填寫。需處方飲食或有疾病時，請依獸醫指示。</p></div>';
-  h+='<div class="card"><h3>個人化照護建議</h3>'+T.map(function(t){return '<div class="tip">'+t[0]+'<br><span class="note">'+t[1]+'｜信心：'+t[2]+'</span></div>'}).join('')+'<p class="note">不診斷疾病，不建議藥物或劑量。</p></div>';
+  var lv=e.lv,col=lv==='r'?'var(--r)':lv==='y'?'var(--y)':'var(--g)';
+  var head=lv==='r'?'請先處理緊急狀況':lv==='y'?n+'這週有需要留意的變化':n+'目前狀況穩定';
+  var sub=lv==='r'?'你回報了排尿困難，請立刻聯絡動物醫院。':lv==='y'?e.rs.join('；')+'。':'和自己的基準相比沒有明顯偏離，繼續維持目前的照顧方式。';
+  var A=[];
+  if(lv==='r')A.push(['立刻聯絡動物醫院','排不出尿可能在短時間內危及生命，不要等待觀察。']);
+  if(lv==='y')A.push(['2 週內預約健檢'+(cat&&e.cw>=5?'，並請獸醫評估腎功能（如 SDMA）':''),'有變化不代表一定生病，但早一點檢查，處理的選擇比較多。']);
+  if(lv==='y')A.push(['就診時出示「摘要」分頁','獸醫可以直接看到'+n+'的變化趨勢，不用靠回憶。']);
+  if(e.cw>=5)A.push(['多放幾個水碗，擺在不同位置','喝水方便，才分得出是真的喝得多，還是以前沒喝夠。']);
+  if(e.ca>=5)A.push(['這週留意跳躍與上下樓梯有沒有變慢','活動變少有時是不舒服或疼痛的訊號。']);
+  if(e.dk<=-3)A.push(['每週同一時間量一次體重','不是刻意減重卻變輕時，需要請獸醫評估。']);
+  if(p.bcs&&p.bcs>=6)A.push(['和獸醫討論體重管理目標','照片估計體態偏重（'+p.bcs+'／9），請不要自行大幅減量。']);
+  if(!done(p))A.push(['完成今天的記錄（約 10 秒）','記錄越連續，'+n+'的基準越準。']);
+  if(A.length<3)A.push(['每天花 10 秒記錄食慾與如廁','連續記錄才看得出細微的變化。']);
+  A=A.slice(0,3);
+  var TP=cat?{
+    '幼年':['吃專為幼貓設計的食物','每週量一次體重，確認有穩定成長','疫苗與驅蟲的時程，請向獸醫確認'],
+    '成年':['維持理想體態，每月量一次體重','每天確認喝水與如廁正常','每年至少做 1 次健檢'],
+    '熟齡':['每年至少健檢 1 次，可和獸醫討論是否增加','特別留意喝水量與尿量，這是常見的早期變化','留意口臭、流口水或只用一邊咀嚼'],
+    '高齡':['建議和獸醫討論每半年健檢','留意食慾、體重下降與活動變慢','準備踏階，讓關節不舒服的貓也能輕鬆跳上去']
+  }:{
+    '幼年':['吃專為幼犬設計的食物','每週量一次體重，確認有穩定成長','疫苗與驅蟲的時程，請向獸醫確認'],
+    '成年':['每天固定運動，維持理想體態','每月量一次體重','每年至少健檢 1 次，包含牙齒檢查'],
+    '熟齡':['每年至少健檢 1 次，可和獸醫討論是否增加','留意起身、上下樓梯有沒有變慢','注意體重是否緩慢上升或下降'],
+    '高齡':['建議和獸醫討論每半年健檢','運動改成短時間、多次','留意喝水、食慾與呼吸的變化']
+  };
+  var RF=cat?['公貓一直去貓砂盆，卻尿不出來','持續嘔吐，或超過 24 小時不吃','呼吸急促、張口呼吸','突然無力、站不穩或抽搐']:['一直想排尿卻排不出來','肚子突然脹大、乾嘔','呼吸困難，或牙齦變得蒼白','持續嘔吐或拉血便','突然無力、站不穩或抽搐'];
+  var li=function(t){return '<li>'+t+'</li>'};
+  var h='<div class="card" style="border-left:6px solid '+col+'"><h3>'+head+'</h3><p style="margin:0;font-size:15px">'+sub+'</p></div>';
+  h+='<div class="card"><h3>這週先做 '+A.length+' 件事</h3>'+A.map(function(x,i){return '<div class="tip"><b>'+(i+1)+'. '+x[0]+'</b><br><span class="note">'+x[1]+'</span></div>'}).join('')+'</div>';
+  h+='<div class="card"><h3>每天吃多少</h3><div class="chips" style="margin-bottom:10px"><button class="chip sm'+(S.goal==='keep'?' on':'')+'" data-g="keep">維持體重</button><button class="chip sm'+(S.goal==='lose'?' on':'')+'" data-g="lose">需要減重</button></div>';
+  h+='<div class="big">約 <span id="gr">'+Math.round(lo/d*100)+'–'+Math.round(hi/d*100)+' g</span> ／天</div><p class="note" style="margin:2px 0 10px">約 '+lo+'–'+hi+' 大卡，依 '+n+' 目前 '+kg.toFixed(1)+' kg 與年齡階段估算</p>';
+  h+='<div class="row"><label for="dens">目前食物熱量（包裝上的 kcal／100g）</label><input class="num" id="dens" type="number" min="50" max="600" value="'+d+'"></div>';
+  h+='<p style="margin:10px 0 4px;font-size:14.5px">一天分 '+meals+' 餐，固定時間餵，方便觀察食慾。</p><p class="note" style="margin:0">'+(S.goal==='lose'?'減重份量約比維持少 2 成，目標請先和獸醫確認。':'這是估算範圍，不是固定克數。每 2–4 週看體重與體態，再微調份量。')+'</p>';
+  if(lv!=='g')h+='<p class="tip" style="margin-top:10px">目前出現偏離，請先不要自己大幅改變飲食，等獸醫評估。</p>';
+  h+='</div>';
+  h+='<div class="card"><h3>'+n+'的日常照護（'+st+'）</h3><ul style="margin:0;padding-left:18px;font-size:14.5px;line-height:1.8">'+TP[st].map(li).join('')+'</ul></div>';
+  h+='<div class="card" style="border-color:var(--r)"><h3>這些情況請馬上就醫</h3><ul style="margin:0;padding-left:18px;font-size:14.5px;line-height:1.8">'+RF.map(li).join('')+'</ul><p class="note">出現以上任何一項，不要等待觀察，也不要等 App 的下一次提醒。</p></div>';
+  h+='<details class="card"><summary style="cursor:pointer"><b>這些建議是怎麼來的？</b></summary><p class="note" style="font-size:13.5px">1. 偏離判斷：和 '+n+' 自己前 14 天的記錄比較，不是和平均值比較。<br>2. 份量：以靜止能量需求 RER = 70 × 體重^0.75，再乘上生活狀態係數（貓 1.2、狗 1.6）並取 ±10%。係數為通用估算，正式版會由獸醫顧問校正。<br>3. 年齡階段建議為一般通則，個別毛孩請依獸醫指示。<br>4. 整體信心：中。本服務不診斷疾病，也不建議藥物或劑量；需處方飲食或有疾病時，請依獸醫指示。</p></details>';
   return h;
 }
 function summ(p,e){
@@ -196,7 +230,9 @@ function summ(p,e){
   ['BCS',p.bcs?p.bcs+'／9（照片估計）':'尚未評估'],['飼主回報',p.lg?'食慾 '+(['很好','普通','變差'][p.lg.a]||'未填')+'；排泄 '+(['正常','次數變多','排不出（緊急）'][p.lg.l]||'未填'):'今天尚未記錄'],['記錄完成度',(p.hist.filter(Boolean).length+(done(p)?1:0))+'／7 天'],['異常行為',p.ev.join('；')],['每日能量','約 '+Math.round(70*Math.pow(p.k[p.k.length-1],0.75)*(p.sp==='貓'?1.2:1.6)*0.9)+'–'+Math.round(70*Math.pow(p.k[p.k.length-1],0.75)*(p.sp==='貓'?1.2:1.6)*1.1)+' kcal（示意估算）'],
   ['註記','飼主與項圈資料整理，僅供就診參考；判斷與處置由獸醫決定。']];
   S.rows=rows;
-  return '<div class="card"><h3>獸醫摘要</h3><dl>'+rows.map(function(r){return '<dt>'+r[0]+'</dt><dd>'+r[1]+'</dd>'}).join('')+'</dl></div><div class="row"><button class="btn" id="share">分享／複製摘要</button><span class="note" id="msg" style="margin:0"></span></div>';
+  if(e.lv==='r')rows.unshift(['緊急','飼主回報排尿困難，建議立即就醫']);
+  var ban=e.lv==='r'?'<div class="alert r" role="alert"><b>緊急：請優先處理</b><br>飼主回報排尿困難，可能危及生命，建議立即就醫。</div>':e.lv==='y'?'<div class="alert y"><b>注意：偏離個人基準</b><br>'+e.rs.join('；')+'</div>':'';
+  return ban+'<div class="card"><h3>獸醫摘要</h3><dl>'+rows.map(function(r){var u=r[0]==='緊急'||(r[0]==='系統提醒'&&e.lv!=='g')||(r[0]==='飼主回報'&&p.lg&&p.lg.l===2);return '<dt>'+r[0]+'</dt><dd'+(u?' class="hi '+(e.lv==='r'?'r':'y')+'"':'')+'>'+r[1]+'</dd>'}).join('')+'</dl></div><div class="row"><button class="btn" id="share">分享／複製摘要</button><span class="note" id="msg" style="margin:0"></span></div>';
 }
 function render(){
   var p=pets[S.cur],e=ev(p);
@@ -246,7 +282,7 @@ function bind(p,e){
   document.querySelectorAll('[data-m]').forEach(function(b){b.onclick=function(){S.metric=b.dataset.m;render()}});
   document.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){S.range=+b.dataset.r;render()}});
   if($('col'))$('col').onclick=function(){S.collar=!S.collar;render();toast(S.collar?'項圈已連線，資料已同步':'項圈已中斷，可改用手動記錄')};
-  if($('push'))$('push').onclick=function(){toast(e.lv==='y'?p.name+'：'+e.rs[0]+'，建議安排健檢。':p.name+'今天一切正常，繼續保持。')};
+  if($('push'))$('push').onclick=function(){toast(e.lv==='r'?'緊急：'+p.name+'回報排尿困難，請立刻聯絡動物醫院，不要等待觀察。':e.lv==='y'?p.name+'：'+e.rs[0]+'，建議安排健檢。':p.name+'今天一切正常，繼續保持。')};
   if($('file'))$('file').onchange=function(ev){
     var f=ev.target.files[0];if(!f)return;
     var r=new FileReader();r.onload=function(){p.photo=r.result;p.bcs=null;p.busy=true;render();setTimeout(function(){setBcs(p);render();var q=$('bcsr');if(q)q.scrollIntoView({block:'nearest'})},1100)};r.readAsDataURL(f);
