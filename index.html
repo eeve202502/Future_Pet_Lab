@@ -95,6 +95,21 @@ var pets=[
 pets[0].k=pets[0].w.map(function(_,i){return i<14?4.9:+(4.9-(i-13)*0.014).toFixed(2)});
 pets[1].k=pets[1].w.map(function(){return +(12.4+(rnd()-.5)*0.2).toFixed(2)});
 var S={cur:0,tab:'today',metric:'w',range:28,collar:true,goal:'keep',dens:{},kc:{lo:0,hi:0},welcome:true,tour:-1};
+var STORE='pawbaseline-direct-v1';
+function dayKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function loadSaved(){
+  try{
+    var d=JSON.parse(localStorage.getItem(STORE)||'null');if(!d)return;
+    var sameDay=d.day===dayKey();
+    (d.pets||[]).forEach(function(saved){var p=pets.find(function(q){return q.id===saved.id});if(p){p.lg=sameDay?(saved.lg||null):null;p.hist=Array.isArray(saved.hist)?saved.hist:p.hist;p.bcs=saved.bcs||null}});
+    if(d.settings){S.cur=d.settings.cur===1?1:0;S.tab=['today','trend','body','care','sum'].indexOf(d.settings.tab)>=0?d.settings.tab:'today';S.collar=d.settings.collar!==false;S.goal=d.settings.goal==='lose'?'lose':'keep';S.remind=!!d.settings.remind;S.dens=d.settings.dens||{}}
+    S.welcome=false;
+  }catch(e){localStorage.removeItem(STORE)}
+}
+function saveSaved(){
+  if(S.welcome)return;
+  try{localStorage.setItem(STORE,JSON.stringify({day:dayKey(),pets:pets.map(function(p){return{id:p.id,lg:p.lg||null,hist:p.hist,bcs:p.bcs||null}}),settings:{cur:S.cur,tab:S.tab,collar:S.collar,goal:S.goal,remind:S.remind,dens:S.dens}}))}catch(e){}
+}
 var M={w:{n:'飲水',u:'ml',bad:1},a:{n:'活動量',u:'',bad:-1},k:{n:'體重',u:'kg',bad:-1}};
 function ev(p){
   var bw=mean(p.w.slice(0,14)),ba=mean(p.a.slice(0,14)),bk=mean(p.k.slice(0,14)),rs=[];
@@ -120,8 +135,8 @@ function today(p,e){
     h+='<div class="tile"><small>'+M[m].n+(off?'（項圈離線）':'')+'</small><b>'+(off?'—':v+(M[m].u?'<span style="font-size:12px"> '+M[m].u+'</span>':''))+'</b><br><i class="'+(bad?'up':'ok')+'">'+(off?'改用手動記錄':pct(v,b)+' vs 基準')+'</i></div>';
   });
   h+='</div>'+(e.lv==='r'?statusCard(p)+logCard(p):'')+behCard(p)+'<h3 class="sec">裝置與提醒（選配）</h3><div class="card"><div class="row"><div><b>智慧項圈</b><br><span class="note" style="margin:0">'+(S.collar?'已連線，剛剛同步':'未連線')+'</span></div><button class="ghost" id="col">'+(S.collar?'中斷連線':'藍牙配對')+'</button></div></div>';
-  h+='<div class="card"><div class="row"><div><b>推播提醒</b><br><span class="note" style="margin:0">App 可在偏離基準時主動通知</span></div><button class="btn" id="push">模擬推播</button></div></div>';
-  h+='<p class="note">※ 全部為虛構示意資料，燈號為簡化規則，不構成醫療診斷。</p>';
+  h+='<div class="card"><div class="row"><div><b>提醒預覽</b><br><span class="note" style="margin:0">目前為示意通知；背景推播需正式通知服務</span></div><button class="btn" id="push">預覽提醒</button></div></div>';
+  h+='<p class="note">※ 示意資料僅供展示，燈號為簡化規則，不構成醫療診斷。你的日常記錄保存在此裝置的瀏覽器。</p>';
   return h;
 }
 function done(p){return !!(p.lg&&p.lg.a!==undefined&&p.lg.l!==undefined)}
@@ -130,7 +145,7 @@ function streak(p){var s=done(p)?1:0,i;for(i=p.hist.length-1;i>=0&&p.hist[i];i--
 function statusCard(p){
   var d=done(p),n=left(p),s=streak(p);
   var strip=p.hist.map(function(v,i){return '<span class="dy'+(v?' ok':'')+'" title="'+(6-i)+' 天前'+(v?'已記錄':'未記錄')+'"></span>'}).join('')+'<span class="dy tdy'+(d?' ok':'')+'" title="今天"></span>';
-  return '<div class="card st '+(d?'done':'todo')+'" id="stc"><div class="row"><b>'+(d?'今天已完成記錄 ✓':'今天還沒記錄')+'</b><span class="note" style="margin:0">'+(d?'連續 '+s+' 天':n===2?'還差 2 題，約 10 秒':'還差 1 題')+'</span></div><div class="dys" aria-label="近 7 天記錄狀況">'+strip+'</div><p class="note" style="margin:6px 0 0">圓點由左到右是 6 天前到今天，實心代表已記錄。</p>'+(d?'':'<div class="row" style="margin-top:8px"><button class="ghost" id="rm">'+(S.remind?'已設定 20:00 提醒（點此取消）':'未記錄時，晚上 8 點提醒我')+'</button></div>')+'</div>';
+  return '<div class="card st '+(d?'done':'todo')+'" id="stc"><div class="row"><b>'+(d?'今天已完成記錄 ✓':'今天還沒記錄')+'</b><span class="note" style="margin:0">'+(d?'連續 '+s+' 天':n===2?'還差 2 題，約 10 秒':'還差 1 題')+'</span></div><div class="dys" aria-label="近 7 天記錄狀況">'+strip+'</div><p class="note" style="margin:6px 0 0">圓點由左到右是 6 天前到今天，實心代表已記錄。</p>'+(d?'':'<div class="row" style="margin-top:8px"><button class="ghost" id="rm">'+(S.remind?'已設定晚間提醒（示意，點此取消）':'設定未記錄晚間提醒（示意）')+'</button></div>')+'</div>';
 }
 function logCard(p){
   var g=p.lg||{},A=['很好','普通','變差'],X=p.sp==='狗'?['正常','次數變多','想排尿卻排不出']:['正常','次數變多','一直去但排不出'];
@@ -232,7 +247,7 @@ function summ(p,e){
   S.rows=rows;
   if(e.lv==='r')rows.unshift(['緊急','飼主回報排尿困難，建議立即就醫']);
   var ban=e.lv==='r'?'<div class="alert r" role="alert"><b>緊急：請優先處理</b><br>飼主回報排尿困難，可能危及生命，建議立即就醫。</div>':e.lv==='y'?'<div class="alert y"><b>注意：偏離個人基準</b><br>'+e.rs.join('；')+'</div>':'';
-  return ban+'<div class="card"><h3>獸醫摘要</h3><dl>'+rows.map(function(r){var u=r[0]==='緊急'||(r[0]==='系統提醒'&&e.lv!=='g')||(r[0]==='飼主回報'&&p.lg&&p.lg.l===2);return '<dt>'+r[0]+'</dt><dd'+(u?' class="hi '+(e.lv==='r'?'r':'y')+'"':'')+'>'+r[1]+'</dd>'}).join('')+'</dl></div><div class="row"><button class="btn" id="share">分享／複製摘要</button><span class="note" id="msg" style="margin:0"></span></div>';
+  return ban+'<div class="card"><h3>獸醫摘要</h3><dl>'+rows.map(function(r){var u=r[0]==='緊急'||(r[0]==='系統提醒'&&e.lv!=='g')||(r[0]==='飼主回報'&&p.lg&&p.lg.l===2);return '<dt>'+r[0]+'</dt><dd'+(u?' class="hi '+(e.lv==='r'?'r':'y')+'"':'')+'>'+r[1]+'</dd>'}).join('')+'</dl><p class="note">摘要由 App 整理，可直接複製後提供給獸醫。</p></div><div class="row"><button class="btn" id="share">複製獸醫摘要</button><span class="note" id="msg" style="margin:0"></span></div>';
 }
 function render(){
   var p=pets[S.cur],e=ev(p);
@@ -240,6 +255,7 @@ function render(){
   var T=[['today','◉','今天'],['trend','↗','趨勢'],['body','▣','體態'],['care','♥','建議'],['sum','☰','摘要']];
   $('nav').innerHTML=T.map(function(t){return '<button data-t="'+t[0]+'"'+(S.tab===t[0]?' aria-current="page"':'')+'><span>'+t[1]+'</span>'+t[2]+(t[0]==='today'&&!done(p)?'<i class="bd" aria-label="今天尚未記錄"></i>':'')+'</button>'}).join('');
   $('view').innerHTML='<p class="hint">提示：'+HINT[S.tab]+'</p>'+(S.tab==='today'?today(p,e):S.tab==='trend'?trends(p,e):S.tab==='body'?body(p):S.tab==='care'?care(p,e):summ(p,e));
+  saveSaved();
   bind(p,e);
 }
 function setBcs(p){p.bcs=p.sp==='貓'?5:6;p.busy=false}
@@ -247,7 +263,7 @@ var HINT={today:'先點兩題記錄今天，燈號會立即更新。',trend:'點
 var TOUR=[
 {t:'today',sel:'.light',h:'先看燈號',d:'綠燈是正常，黃燈建議安排健檢，紅燈請立即就醫。它是和毛孩自己比較，不是和平均值比。'},
 {t:'today',sel:'#lgc',h:'每天記錄 10 秒',d:'只要點兩題：食慾和如廁。試試點「變差」或「次數變多」，看燈號怎麼變。'},
-{t:'today',sel:'#push',h:'偏離時主動提醒',d:'按「模擬推播」，看 App 會怎麼通知你，不用每天自己翻資料。'},
+  {t:'today',sel:'#push',h:'查看提醒內容',d:'按「預覽提醒」看偏離時的通知內容。正式背景推播需接上通知服務。'},
 {t:'trend',sel:'.card',h:'看個人化趨勢',d:'虛線是毛孩自己的基準，紅點是偏離的日子。可切換飲水、活動、體重。'},
 {t:'body',sel:'#samp',h:'拍照看體態',d:'選一張照片，或按「用範例流程」體驗。結果為示意，需獸醫複核。'},
 {t:'care',sel:'#dens',h:'個人化營養建議',d:'填入目前食物的熱量，會換算成每日份量範圍，並附上依據與信心程度。'},
@@ -260,7 +276,7 @@ function tourUI(){
   a.classList.toggle('touring',S.tour>=0&&!S.welcome);
   if(S.welcome){
     o.innerHTML='<div class="wel"><div class="wc"><h2>歡迎使用 PawBaseline</h2><p style="margin:0">每天花 10 秒，幫毛孩建立自己的健康基準。</p><ol><li>每天點兩題：食慾與如廁</li><li>看燈號：和毛孩自己比較，有偏離就提醒</li><li>就診前分享摘要給獸醫</li></ol><div class="row"><button class="ghost" id="skp">直接使用</button><button class="btn" id="gt">30 秒導覽</button></div><p class="note">隨時按右上角「使用導覽」重看。</p></div></div>';
-    $('skp').onclick=function(){S.welcome=false;tourUI()};
+    $('skp').onclick=function(){S.welcome=false;saveSaved();tourUI()};
     $('gt').onclick=function(){go(0)};
     return;
   }
@@ -291,11 +307,11 @@ function bind(p,e){
   if($('share'))$('share').onclick=function(){
     var t=S.rows.map(function(r){return r[0]+'：'+r[1]}).join('\n');
     var done=function(s){$('msg').textContent=s};
-    try{if(navigator.share){navigator.share({title:p.name+' 健康摘要',text:t}).catch(function(){})}else{navigator.clipboard.writeText(t).then(function(){done('已複製')},function(){done('請手動選取文字')})}}catch(x){done('請手動選取文字')}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){done('已複製，可直接貼給獸醫')},function(){done('複製失敗，請檢查瀏覽器剪貼簿權限')})}else{done('此瀏覽器不支援複製，請手動選取摘要文字')}
   };
 }
 $('help').onclick=function(){go(0)};
-render();
+loadSaved();render();
 </script>
 </body>
 </html>
